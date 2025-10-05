@@ -1,8 +1,9 @@
 {
-  "name": "night-hosting",
+  "name": "night-hosting-api",
   "version": "1.0.0",
-  "description": "Backend y WebSocket para Night Hosting",
+  "description": "Servidor API con WebSocket para Night Hosting",
   "main": "server.js",
+  "type": "module",
   "scripts": {
     "start": "node server.js"
   },
@@ -12,6 +13,6 @@
     "express": "^4.19.2",
     "multer": "^1.4.5-lts.1",
     "uuid": "^9.0.1",
-    "ws": "^8.16.0"
+    "ws": "^8.17.0"
   }
 }
