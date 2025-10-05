@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Night Hosting Control Panel</title>
+<style>
+  body {
+    background: #0d0d0d;
+    color: #00ffcc;
+    font-family: monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+  input, button {
+    margin: 5px;
+    padding: 6px;
+    border-radius: 6px;
+    border: none;
+    font-family: monospace;
+  }
+  button { background: #00ffcc; color: #000; cursor: pointer; }
+  button:hover { background: #00ffaa; }
+  pre { background: #111; padding: 10px; border-radius: 8px; color: #0f0; width: 400px; height: 150px; overflow-y: auto; }
+</style>
+</head>
+<body>
+<h2>🚀 Night Hosting API Control</h2>
+
+<button onclick="createServer()">Crear Servidor</button>
+<input id="serverId" placeholder="serverId actual">
+<br>
+<input type="file" id="fileInput" multiple>
+<button onclick="uploadFiles()">Subir archivos</button>
+<br>
+<button onclick="startServer()">Iniciar</button>
+<button onclick="stopServer()">Detener</button>
+<button onclick="checkStatus()">Estado</button>
+
+<pre id="log"></pre>
+
+<script>
+const API = window.location.origin + "/api/";
+
+function log(msg) {
+  const box = document.getElementById('log');
+  box.textContent += msg + "\n";
+  box.scrollTop = box.scrollHeight;
+}
+
+async function createServer() {
+  const res = await fetch(API + "create", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ plan: "free", runtime: "node" })
+  });
+  const data = await res.json();
+  log(JSON.stringify(data));
+  if (data.serverId) document.getElementById("serverId").value = data.serverId;
+}
+
+async function uploadFiles() {
+  const id = document.getElementById("serverId").value;
+  const files = document.getElementById("fileInput").files;
+  const form = new FormData();
+  form.append("serverId", id);
+  for (const f of files) form.append("files", f);
+  const res = await fetch(API + "upload", { method: "POST", body: form });
+  log(await res.text());
+}
+
+async function startServer() {
+  const id = document.getElementById("serverId").value;
+  const res = await fetch(API + "action", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ serverId: id, action: "start" })
+  });
+  log(await res.text());
+}
+
+async function stopServer() {
+  const id = document.getElementById("serverId").value;
+  const res = await fetch(API + "action", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ serverId: id, action: "stop" })
+  });
+  log(await res.text());
+}
+
+async function checkStatus() {
+  const id = document.getElementById("serverId").value;
+  const res = await fetch(API + "status?serverId=" + id);
+  log(await res.text());
+}
+</script>
+</body>
+</html>
