@@ -7,6 +7,7 @@ const path = require('path');
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
 const { WebSocketServer } = require('ws');
+const http = require('http');
 
 const app = express();
 app.use(express.json());
@@ -23,7 +24,7 @@ const SERVERS = {};
 
 // =================== ENDPOINTS API ===================
 
-// Crear un nuevo "server" lógico (no Docker, solo registro)
+// Crear un nuevo "server" lógico
 app.post('/api/create', (req, res) => {
   const { plan = 'free', runtime = 'node' } = req.body;
   const serverId = 'nh-' + uuidv4().split('-')[0];
@@ -54,7 +55,7 @@ app.post('/api/upload', upload.array('files'), (req, res) => {
   res.json({ ok: true });
 });
 
-// Simular acciones start/stop/restart (Render no permite contenedores)
+// Simular acciones start/stop/restart
 app.post('/api/action', async (req, res) => {
   const { serverId, action } = req.body;
   if (!serverId || !SERVERS[serverId]) {
@@ -87,7 +88,7 @@ app.get('/api/status', (req, res) => {
 });
 
 // =================== WEBSOCKET UNIFICADO ===================
-const server = require('http').createServer(app);
+const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
 const wsClients = {}; // serverId -> Set(ws)
@@ -117,7 +118,7 @@ function broadcastLog(serverId, line) {
   }
 }
 
-// =================== PÁGINA PRINCIPAL ===================
+// =================== PÁGINA PRINCIPAL (ROOT) ===================
 app.get('/', (req, res) => {
   res.send(`
     <html>
@@ -125,20 +126,39 @@ app.get('/', (req, res) => {
         <title>Night Hosting API</title>
         <style>
           body {
-            background-color: #0f172a;
-            color: #f1f5f9;
-            font-family: Arial, sans-serif;
+            background-color: #0d0d0d;
+            color: #00ffcc;
+            font-family: monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
             text-align: center;
-            padding-top: 100px;
           }
-          h1 { font-size: 2.5rem; color: #38bdf8; }
-          p { color: #94a3b8; }
+          h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+          }
+          p {
+            color: #888;
+            font-size: 1em;
+          }
+          .pulse {
+            animation: pulse 1.5s infinite;
+          }
+          @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+          }
         </style>
       </head>
       <body>
-        <h1>🚀 Night Hosting API Online</h1>
-        <p>Your backend is running successfully on Render.</p>
-        <p>Use the endpoints under <b>/api/</b> to interact.</p>
+        <h1 class="pulse">🚀 Night Hosting API Online</h1>
+        <p>Servidor activo y escuchando en el puerto ${process.env.PORT || 3000}</p>
+        <p>Endpoints disponibles en <b>/api/</b></p>
       </body>
     </html>
   `);
@@ -146,6 +166,6 @@ app.get('/', (req, res) => {
 
 // =================== INICIO DEL SERVIDOR ===================
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () =>
-  console.log(`✅ API y WebSocket escuchando en puerto ${PORT}`)
-);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ API y WebSocket escuchando en puerto ${PORT}`);
+});
