@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Servidor API con WebSocket para Night Hosting",
   "main": "server.js",
-  "type": "module",
   "scripts": {
     "start": "node server.js"
   },
