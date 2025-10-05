@@ -1,21 +1,15 @@
 // =================== DEPENDENCIAS ===================
-import dotenv from "dotenv";
-import express from "express";
-import multer from "multer";
-import fs from "fs";
-import path from "path";
-import cors from "cors";
-import { v4 as uuidv4 } from "uuid";
-import { WebSocketServer } from "ws";
-import http from "http";
-import { fileURLToPath } from "url";
-
-dotenv.config();
+require("dotenv").config();
+const express = require("express");
+const multer = require("multer");
+const fs = require("fs");
+const path = require("path");
+const cors = require("cors");
+const { v4: uuidv4 } = require("uuid");
+const { WebSocketServer } = require("ws");
+const http = require("http");
 
 // =================== CONFIGURACIÓN BASE ===================
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 const app = express();
 app.use(express.json());
 app.use(cors());
