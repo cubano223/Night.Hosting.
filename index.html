@@ -1,101 +1,272 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Night Hosting Control Panel</title>
-<style>
-  body {
-    background: #0d0d0d;
-    color: #00ffcc;
-    font-family: monospace;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-  }
-  input, button {
-    margin: 5px;
-    padding: 6px;
-    border-radius: 6px;
-    border: none;
-    font-family: monospace;
-  }
-  button { background: #00ffcc; color: #000; cursor: pointer; }
-  button:hover { background: #00ffaa; }
-  pre { background: #111; padding: 10px; border-radius: 8px; color: #0f0; width: 400px; height: 150px; overflow-y: auto; }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NIGHT HOSTING — Panel</title>
+  <style>
+    /* Diseño moderno y oscuro */
+    :root{
+      --bg:#0b0f17; --card:#0f1720; --accent:#7c3aed; --muted:#9aa4b2; --glass: rgba(255,255,255,0.04);
+      --success:#10b981; --danger:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial; background:linear-gradient(120deg,#071024 0%, #081226 50%, #071021 100%); color:#e6eef8}
+    .center{display:grid; place-items:center; min-height:100vh}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent); border-radius:16px; padding:20px; box-shadow:0 6px 30px rgba(2,6,23,0.6); width:1100px; max-width:95%;}
+
+    header{display:flex; align-items:center; justify-content:space-between; gap:12px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#3b82f6);display:grid;place-items:center;font-weight:700}
+    h1{margin:0;font-size:18px}
+    .subtitle{color:var(--muted);font-size:13px}
+
+    .layout{display:grid;grid-template-columns:1fr 420px;gap:18px;margin-top:18px}
+
+    /* Left: Console */
+    .console{background:var(--card); border-radius:12px; padding:14px; min-height:420px; display:flex; flex-direction:column}
+    .console-top{display:flex;align-items:center;justify-content:space-between}
+    .console-title{display:flex;flex-direction:column}
+    .controls{display:flex;gap:8px;align-items:center}
+    button.btn{padding:8px 12px;border-radius:10px;border:0;background:var(--glass); color:inherit;cursor:pointer}
+    button.primary{background:linear-gradient(90deg,var(--accent),#2563eb); box-shadow:0 6px 18px rgba(124,58,237,0.18)}
+    button.warn{background:linear-gradient(90deg,#f59e0b,#f97316)}
+    .status{font-weight:600}
+
+    .console-body{margin-top:12px; background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent); border-radius:10px; padding:12px; flex:1; overflow:auto; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace; font-size:13px; color:#bfe3ff}
+
+    /* Right: Resources */
+    .resources{background:var(--card); border-radius:12px; padding:14px}
+    .file-drop{border:2px dashed rgba(255,255,255,0.04); padding:18px;border-radius:10px;text-align:center}
+    input[type=file]{display:none}
+    .plan-list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+    .plan{background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent); padding:12px;border-radius:10px;display:flex;justify-content:space-between;align-items:center}
+
+    /* Welcome overlay */
+    .overlay{position:fixed;inset:0;background:linear-gradient(180deg, rgba(2,6,23,0.85), rgba(2,6,23,0.95)); display:grid;place-items:center;z-index:40}
+    .welcome{background:linear-gradient(135deg,#0b1220,#07122b); padding:34px;border-radius:14px; text-align:center; width:680px; max-width:92%}
+    .welcome h2{font-size:32px;margin:6px 0}
+    .welcome p{color:var(--muted); margin:6px 0 18px}
+    .google-btn{display:inline-flex;align-items:center;gap:10px;padding:10px 16px;border-radius:12px;background:#fff;color:#0b1220;cursor:pointer}
+    .small{font-size:13px;color:var(--muted)}
+
+    footer{margin-top:12px;color:var(--muted);font-size:12px}
+
+    /* small screens */
+    @media (max-width:980px){.layout{grid-template-columns:1fr}}
+  </style>
 </head>
 <body>
-<h2>🚀 Night Hosting API Control</h2>
+  <div class="center">
+    <div class="card">
+      <header>
+        <div class="brand">
+          <div class="logo">NH</div>
+          <div>
+            <h1>NIGHT HOSTING</h1>
+            <div class="subtitle">Panel de control</div>
+          </div>
+        </div>
+        <div id="user-area" class="small">No autenticado</div>
+      </header>
 
-<button onclick="createServer()">Crear Servidor</button>
-<input id="serverId" placeholder="serverId actual">
-<br>
-<input type="file" id="fileInput" multiple>
-<button onclick="uploadFiles()">Subir archivos</button>
-<br>
-<button onclick="startServer()">Iniciar</button>
-<button onclick="stopServer()">Detener</button>
-<button onclick="checkStatus()">Estado</button>
+      <div class="layout">
+        <section class="console">
+          <div class="console-top">
+            <div class="console-title">
+              <div style="font-size:14px">Console</div>
+              <div class="small">Estado del bot y logs</div>
+            </div>
+            <div class="controls">
+              <div id="status" class="status small">Desconectado</div>
+              <button id="startBtn" class="btn primary">Encender</button>
+              <button id="restartBtn" class="btn warn">Reiniciar</button>
+              <button id="stopBtn" class="btn">Apagar</button>
+            </div>
+          </div>
 
-<pre id="log"></pre>
+          <div id="consoleBody" class="console-body">/* Consola — aquí aparecerán los logs */</div>
+        </section>
 
-<script>
-const API = window.location.origin + "/api/";
+        <aside class="resources">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-weight:700">Resources</div>
+              <div class="small">Sube tu bot y requirements</div>
+            </div>
+            <div class="small" id="quota">Plan: Gratis</div>
+          </div>
 
-function log(msg) {
-  const box = document.getElementById('log');
-  box.textContent += msg + "\n";
-  box.scrollTop = box.scrollHeight;
-}
+          <div style="margin-top:12px" class="file-drop" id="dropZone">
+            <div>Arrastra o haz click para seleccionar archivo</div>
+            <div class="small" style="margin-top:6px">Solo se permite subir <strong>bot.py</strong> y <strong>requirements.txt</strong></div>
+            <input id="fileInput" type="file" />
+            <div style="margin-top:10px">
+              <button id="uploadBtn" class="btn">Subir archivo</button>
+            </div>
+            <div id="uploadMsg" class="small" style="margin-top:8px"></div>
+          </div>
 
-async function createServer() {
-  const res = await fetch(API + "create", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ plan: "free", runtime: "node" })
-  });
-  const data = await res.json();
-  log(JSON.stringify(data));
-  if (data.serverId) document.getElementById("serverId").value = data.serverId;
-}
+          <div class="plan-list">
+            <div class="plan">
+              <div>
+                <div style="font-weight:700">Plan Gratis</div>
+                <div class="small">1 bot, logs en vivo, 50MB</div>
+              </div>
+              <div><button id="chooseFree" class="btn">Elegir</button></div>
+            </div>
+          </div>
+        </aside>
+      </div>
 
-async function uploadFiles() {
-  const id = document.getElementById("serverId").value;
-  const files = document.getElementById("fileInput").files;
-  const form = new FormData();
-  form.append("serverId", id);
-  for (const f of files) form.append("files", f);
-  const res = await fetch(API + "upload", { method: "POST", body: form });
-  log(await res.text());
-}
+      <footer>
+        <div>Night Hosting • Interfaz demo — recuerda conectar un backend seguro para ejecutar uploads.</div>
+      </footer>
+    </div>
+  </div>
 
-async function startServer() {
-  const id = document.getElementById("serverId").value;
-  const res = await fetch(API + "action", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ serverId: id, action: "start" })
-  });
-  log(await res.text());
-}
+  <!-- Overlay bienvenida / verificación -->
+  <div id="overlay" class="overlay">
+    <div class="welcome">
+      <div style="font-size:12px;color:var(--muted)">BIENVENIDO A</div>
+      <h2>★ NIGHT HOSTING ★</h2>
+      <p class="small">Entra y se desbanezca — verifica tu cuenta con Google para continuar.</p>
+      <div style="display:flex;gap:12px;justify-content:center;margin-top:18px">
+        <div id="googleSign" class="google-btn">Iniciar con Google</div>
+      </div>
+      <div style="margin-top:12px" class="small">Al verificar podrás elegir un plan y subir tu bot (bot.py) y requirements.txt</div>
+    </div>
+  </div>
 
-async function stopServer() {
-  const id = document.getElementById("serverId").value;
-  const res = await fetch(API + "action", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ serverId: id, action: "stop" })
-  });
-  log(await res.text());
-}
+  <script>
+    // --- CONFIGURATION ---
+    // El frontend asume que existen endpoints backend seguros:
+    // POST /api/upload  -> recibe FormData {file} y devuelve {ok:true,msg:''}
+    // POST /api/start   -> arranca el bot en el servidor, devuelve {ok:true}
+    // POST /api/restart -> reinicia, devuelve {ok:true}
+    // POST /api/stop    -> detiene, devuelve {ok:true}
+    // GET  /api/status  -> devuelve {running: true/false}
+    // GET  /api/logs    -> SSE stream de logs (opcional)
+    // ------------------------------------------------------------------
 
-async function checkStatus() {
-  const id = document.getElementById("serverId").value;
-  const res = await fetch(API + "status?serverId=" + id);
-  log(await res.text());
-}
-</script>
+    const overlay = document.getElementById('overlay');
+    const googleSign = document.getElementById('googleSign');
+    const userArea = document.getElementById('user-area');
+    const consoleBody = document.getElementById('consoleBody');
+    const statusEl = document.getElementById('status');
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const fileInput = document.getElementById('fileInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const uploadMsg = document.getElementById('uploadMsg');
+    const dropZone = document.getElementById('dropZone');
+
+    // ----------- Simulación de autenticación con Google (FRONTEND) -----------
+    // Nota: para producción usa Firebase Auth o Google OAuth2 en backend.
+    function fakeSignInWithGoogle(){
+      // Aquí solo simulamos la verificación.
+      const fakeUser = {name:'Usuario',email:'user@example.com'};
+      userArea.textContent = `${fakeUser.name} • ${fakeUser.email}`;
+      overlay.style.display = 'none';
+      appendToConsole('[auth] Verificado con Google: ' + fakeUser.email);
+    }
+
+    googleSign.addEventListener('click', ()=>{
+      // reemplaza por flujo real OAuth si quieres
+      fakeSignInWithGoogle();
+    });
+
+    // ---------------- Console helpers ----------------
+    function appendToConsole(text){
+      const p = document.createElement('div');
+      p.textContent = (new Date()).toLocaleTimeString() + ' — ' + text;
+      consoleBody.appendChild(p);
+      consoleBody.scrollTop = consoleBody.scrollHeight;
+    }
+
+    // ----------------- Control Bot -----------------
+    async function postAction(path){
+      try{
+        appendToConsole('[client] Enviando ' + path + '...');
+        const res = await fetch('/api/' + path, {method:'POST', headers:{'Accept':'application/json'}});
+        const j = await res.json();
+        if(j.ok) appendToConsole('[server] ' + (j.msg|| path + ' OK'));
+        else appendToConsole('[server] ERROR: ' + (j.msg||'respuesta negativa'));
+        await updateStatus();
+      }catch(e){
+        appendToConsole('[error] ' + e.message);
+      }
+    }
+
+    startBtn.addEventListener('click', ()=>postAction('start'));
+    restartBtn.addEventListener('click', ()=>postAction('restart'));
+    stopBtn.addEventListener('click', ()=>postAction('stop'));
+
+    async function updateStatus(){
+      try{
+        const res = await fetch('/api/status');
+        const j = await res.json();
+        if(j.running){
+          statusEl.textContent = 'Encendido';
+          statusEl.style.color = 'var(--success)';
+        } else {
+          statusEl.textContent = 'Apagado';
+          statusEl.style.color = 'var(--muted)';
+        }
+      }catch(e){
+        statusEl.textContent = 'Desconectado';
+        statusEl.style.color = 'var(--muted)';
+      }
+    }
+
+    // Intenta conectar a SSE de logs (si el backend lo implementa)
+    function startLogStream(){
+      if(typeof(EventSource) === 'undefined') return;
+      try{
+        const es = new EventSource('/api/logs');
+        es.onmessage = (ev)=> appendToConsole('[log] ' + ev.data);
+        es.onerror = ()=> { es.close(); appendToConsole('[logs] Conexión a logs cerrada'); }
+      }catch(e){ appendToConsole('[logs] no disponible'); }
+    }
+
+    // --------------- Upload handling ---------------
+    dropZone.addEventListener('click', ()=> fileInput.click());
+    dropZone.addEventListener('dragover', (e)=>{ e.preventDefault(); dropZone.style.borderColor='rgba(255,255,255,0.16)'; });
+    dropZone.addEventListener('dragleave', ()=>{ dropZone.style.borderColor='rgba(255,255,255,0.04)'; });
+    dropZone.addEventListener('drop', (e)=>{ e.preventDefault(); fileInput.files = e.dataTransfer.files; });
+
+    uploadBtn.addEventListener('click', async ()=>{
+      const files = fileInput.files;
+      if(!files || files.length===0){ uploadMsg.textContent = 'Selecciona un archivo.'; return; }
+      const file = files[0];
+
+      // Validaciones de nombre
+      if(file.name !== 'bot.py' && file.name !== 'requirements.txt'){
+        uploadMsg.textContent = 'Solo se permiten archivos llamados bot.py o requirements.txt';
+        return;
+      }
+
+      const fd = new FormData();
+      fd.append('file', file);
+
+      uploadMsg.textContent = 'Subiendo...';
+      try{
+        const res = await fetch('/api/upload', {method:'POST', body:fd});
+        const j = await res.json();
+        if(j.ok){ uploadMsg.textContent = 'Subida completada.'; appendToConsole('[upload] ' + file.name + ' subido'); }
+        else { uploadMsg.textContent = 'Error: ' + (j.msg||'subida fallida'); appendToConsole('[upload] ERROR: ' + (j.msg||'')) }
+      }catch(e){ uploadMsg.textContent = 'Error de red: ' + e.message; appendToConsole('[upload] Exception ' + e.message); }
+    });
+
+    // Inicialización
+    (async function(){
+      await updateStatus();
+      startLogStream();
+    })();
+
+    // Para propósitos de demo: escucha respuestas del backend ficticio en /mock
+    // ------------------------------------------------------------------
+  </script>
 </body>
 </html>
